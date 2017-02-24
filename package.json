@@ -1,0 +1,19 @@
+{
+  "name": "iex-scraper",
+  "version": "0.0.1",
+  "description": "A script to scrape the IEX API for the closing price of each stock",
+  "main": "scraper.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "Zack Ward",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZackWard/iex-scraper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ZackWard/iex-scraper/issues"
+  },
+  "homepage": "https://github.com/ZackWard/iex-scraper#readme"
+}
