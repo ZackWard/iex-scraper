@@ -16,35 +16,41 @@ function closeAndExit(error, db = false) {
 
 function fakeData(db, stock, days = 30) {
 
+    // Bail out early if the stock isn't active
+    if (stock.time == 0) {
+        return [];
+    }
+
     let totalChangeVariation = 20;
-    let dailyChangeVariation = 10;
 
     days = days > 0 ? days : 30;
     console.log("Faking " + days + " days worth of data for stock: " + stock.symbol);
     let totalChange = Math.random() * totalChangeVariation;
     totalChange = totalChange * (Math.random() > 0.5 ? 1 : -1);
 
+    let fakeTime = new Date();
+    
     let startPrice = Number(stock.price);
     let endPrice = startPrice * (1 + (totalChange / 100));
+    endPrice = (endPrice < 0 ? 0 : endPrice);
     let totalPriceDifference = endPrice - startPrice;
-    let dailyPriceDifference = priceDifference / days;
+    let dailyPriceDifference = totalPriceDifference / days;
 
     let fakeQuotes = [];
     let currentPrice = startPrice;
-    
-    for (let i = 0; i < days; i++) {
-        let randomDailyPriceVariation = Math.random()
-        let randomDailyPriceDifference = dailyPriceDifference * randomDailyPriceVariation;
+
+    for (let i = 1; i <= days; i++) {
+        currentPrice += dailyPriceDifference;
+        let daysInMS = i * 24 * 60 * 60 * 1000;
         fakeQuotes.push({
             symbol: stock.symbol,
-            price: 0,
-            size: 0,
-            time: 0,
-            faked: 0
+            price: Number(currentPrice.toFixed(2)),
+            size: 100,
+            time: new Date((stock.time.getTime()) - daysInMS),
+            faked: fakeTime
         });
     }
-
-    console.log("Changing total value by " + totalChange.toFixed(2) + "%, from " + startPrice + " to " + endPrice.toFixed(2) + " a difference of $" + totalPriceDifference);
+    return fakeQuotes;
 }
 
 mongodb.MongoClient.connect(mongoUrl, function (err, db) {
@@ -54,13 +60,20 @@ mongodb.MongoClient.connect(mongoUrl, function (err, db) {
 
     // Assume that we only have 1 day of data in MongoDB, so each document should be a unique stock symbol
     var stocks = 0;
+    var fakeQuotes = [];
     db.collection('quotes').find({}).forEach(function (doc) {
-        fakeData(db, doc, process.argv[2]);
+        stocks++;
+        fakeQuotes = fakeQuotes.concat(fakeData(db, doc, process.argv[2]));
     }, function (err) {
         if (err) {
             closeAndExit(err, db);
         }
-        console.log("Finished! Faked data for " + stocks + " stocks.");
-        db.close();
+        db.collection('quotes').insertMany(fakeQuotes, function (err, result) {
+            if (err) {
+                closeAndExit(err, db);
+            }
+            console.log("Created and inserted " + result.insertedCount + " fake historical stock quotes.");
+            db.close();
+        });
     });
 });
