@@ -33,7 +33,7 @@ mongodb.MongoClient.connect(mongoUrl, function (err, db) {
                 console.log(err);
                 process.exit(1);
             }
-            console.log("Inserted " + r.insertedCount + " quotes");
+            console.log(new Date().toString() + ": Inserted " + r.insertedCount + " quotes");
             db.close();
         });
 

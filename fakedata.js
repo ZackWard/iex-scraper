@@ -17,6 +17,7 @@ function closeAndExit(error, db = false) {
 function fakeData(db, stock, days = 30) {
 
     let totalChangeVariation = 20;
+    let dailyChangeVariation = 10;
 
     days = days > 0 ? days : 30;
     console.log("Faking " + days + " days worth of data for stock: " + stock.symbol);
@@ -29,7 +30,11 @@ function fakeData(db, stock, days = 30) {
     let dailyPriceDifference = priceDifference / days;
 
     let fakeQuotes = [];
+    let currentPrice = startPrice;
+    
     for (let i = 0; i < days; i++) {
+        let randomDailyPriceVariation = Math.random()
+        let randomDailyPriceDifference = dailyPriceDifference * randomDailyPriceVariation;
         fakeQuotes.push({
             symbol: stock.symbol,
             price: 0,
