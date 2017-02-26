@@ -14,6 +14,12 @@ function closeAndExit(error, db = false) {
     process.exit(1);
 }
 
+function generatePriceVariation(price, variationRange) {
+    let percentageChange = (variationRange * Math.random()) / 100 * (Math.random() > 0.5 ? 1 : -1);
+    let priceChange = price * percentageChange;
+    return Number(priceChange.toFixed(2));
+}
+
 function fakeData(db, stock, days = 30) {
 
     // Bail out early if the stock isn't active
@@ -21,35 +27,31 @@ function fakeData(db, stock, days = 30) {
         return [];
     }
 
-    let totalChangeVariation = 20;
+    let variationRange = 20;
 
     days = days > 0 ? days : 30;
     console.log("Faking " + days + " days worth of data for stock: " + stock.symbol);
-    let totalChange = Math.random() * totalChangeVariation;
-    totalChange = totalChange * (Math.random() > 0.5 ? 1 : -1);
 
     let fakeTime = new Date();
     
     let startPrice = Number(stock.price);
-    let endPrice = startPrice * (1 + (totalChange / 100));
-    endPrice = (endPrice < 0 ? 0 : endPrice);
-    let totalPriceDifference = endPrice - startPrice;
-    let dailyPriceDifference = totalPriceDifference / days;
 
     let fakeQuotes = [];
+
     let currentPrice = startPrice;
 
     for (let i = 1; i <= days; i++) {
-        currentPrice += dailyPriceDifference;
+        currentPrice += generatePriceVariation(currentPrice, variationRange);
         let daysInMS = i * 24 * 60 * 60 * 1000;
         fakeQuotes.push({
             symbol: stock.symbol,
-            price: Number(currentPrice.toFixed(2)),
+            price: currentPrice > 0 ? Number(currentPrice.toFixed(2)) : 0,
             size: 100,
             time: new Date((stock.time.getTime()) - daysInMS),
             faked: fakeTime
         });
     }
+    console.log(fakeQuotes);
     return fakeQuotes;
 }
 
